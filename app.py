@@ -1,30 +1,23 @@
 from flask import Flask, request
+import telegram
 import os
-import requests
+
+TOKEN = "8829216356:AAEk2fXgwa5MsONMGbKbv4Jygir9dE9dqGc"
+bot = telegram.Bot(token=TOKEN)
 
 app = Flask(__name__)
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
+    update = telegram.Update.de_json(request.get_json(force=True), bot)
+    chat_id = update.message.chat.id
+    text = update.message.text
+    bot.send_message(chat_id=chat_id, text=f"Neenga anupinathu: {text}")
+    return 'ok'
 
 @app.route('/')
 def home():
-    return "Bot Running - OK"
-
-@app.route(f'/{BOT_TOKEN}', methods=['POST'])
-def webhook():
-    data = request.get_json()
-    if "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "")
-        
-        reply = f"Neenga anupinathu: {text} 😊 Bot work aaguthu bro!"
-        
-        requests.post(f"{TELEGRAM_API}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": reply
-        })
-    return "ok"
+    return 'Bot Running - OK'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(port=10000)
